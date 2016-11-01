@@ -1,0 +1,66 @@
+{
+    "server":
+        {
+            "port": 443,
+            "protocol": "HTTPS",
+            "url": "https://CHANGE.ME",
+            "tsl": {
+                "key": "certs/server-key.pem",
+                "cert": "certs/server-cert.pem"
+            },
+            "documentation" : {
+              "enabled" : false,
+              "destination": "SOME_DESTINATION_FOLDER",
+              "template" : "NONE",
+              "configure" : "NONE"
+            }
+    },
+
+    "admins" : ["SVC_ENTERPRISE_APPS"],
+
+    "mongodb": {
+        "url": "mongodb://<dbuser>:<dbpassword>@<host>:<port>/<database>",
+        "url_test": "mongodb://<dbuser>:<dbpassword>@<host>:<port>/<test_database>"
+    },
+
+    "locales" : ["en", "es"],
+
+    "smtp": {
+      "host": "SMTP_HOST",
+      "port": 25,
+      "secure": false,
+      "ignoreTLS":false
+    },
+
+    "email": {
+      "from": "FROM_EMAIL",
+      "envelope": {
+          "from": "FROM_ENVELOPE"
+      }
+
+    },
+
+    "log": {
+        "enabled": true,
+        "level": "info",
+        "audit": "no",
+        "path": "PATH_TO_LOGS_FOLDER",
+        "rotation_period": "1d",
+        "back_copies_count": 2
+    },
+
+    "error500": "Hooray! Something is really dodgy!",
+
+    "routers": [
+        "eth"
+    ],
+
+    "ca-apm-probe": {
+        "enabled": false,
+        "config": {
+            "host": "127.0.0.1",
+            "port": 8080,
+            "appName": "EthInt"
+        }
+    }
+}

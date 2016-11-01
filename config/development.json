@@ -1,0 +1,49 @@
+{
+
+    "server": {
+        "port": 8480,
+        "protocol": "HTTP",
+        "url": "http://localhost:8480",
+        "documentation" : {
+          "enabled" : true,
+          "destination": "docs",
+          "template" : "node_modules/ink-docstrap/template",
+          "configure" : "node_modules/ink-docstrap/template/jsdoc.conf.json"
+        }
+    },
+
+    "mongodb": {
+        "url": "mongodb://localhost/payoo",
+        "url_test": "mongodb://localhost/payoo_test"
+    },
+
+    "smtp": {
+      "host": "smtp.an.ad.anplc.co.uk",
+      "port": 25,
+      "secure": false,
+      "ignoreTLS" : true
+    },
+
+    "email": {
+      "from": "payoo@santander.co.uk",
+      "envelope": {
+          "from": "PAYOO <payoo@santander.co.uk>"
+      }
+
+    },
+
+    "log": {
+        "enabled": true,
+        "level": "trace",
+        "audit": "yes",
+        "path": "logs",
+        "rotation_period": "1d",
+        "back_copies_count": 5
+    },
+
+    "eth": {
+        "ethereumNode": "http://localhost:8545",
+        "contractGas": 1000000
+    }
+
+}
