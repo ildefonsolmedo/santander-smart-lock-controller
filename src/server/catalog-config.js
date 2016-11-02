@@ -9,6 +9,7 @@ const
     exceptions = xreq.exceptions,
     ethcontract = xreq.ethcontract,
     ethtransaction = xreq.ethtransaction,
+    ethlocker = xreq.ethlocker,
     models = xreq.models,
     mocks = xreq.mocks,
     structs = xreq.structs,
@@ -53,7 +54,10 @@ function load(xcatalog, onTest) {
       // Ethereum Transactions
       .set('transactionModel', 'singleton', ethtransaction('TransactionModel'), ['i18n', 'enume', 'moment', 'config', 'ethHelper'])
       .set('ethTrxService', 'singleton', ethtransaction('TransactionService'), ['xcatalog', 'moment', 'i18n', 'enume', 'exceptions','transactionModel'])
-
+      
+      // Ethereum Locker
+      .set('lockerModel', 'singleton', ethlocker('LockerModel'), ['i18n', 'enume', 'moment', 'config', 'ethHelper'])
+      .set('lockerService', 'singleton', ethlocker('LockerService'), ['xcatalog', 'moment', 'i18n', 'enume', 'exceptions','lockerModel'])
 
       // Ethereum Helper
       .set('ethHelper', 'constant', require('./eth/ethHelpers'))
@@ -66,7 +70,7 @@ function load(xcatalog, onTest) {
 
       //Routes
       .set('genRouter', 'singleton', require('./routes/genRouter'), ['xcatalog', 'ServerExceptions'])
-      .set('ethRouter', 'singleton', require('./routes/ethRouter'), ['xcatalog', 'ServerExceptions', 'ethContractService', 'ethTrxService', 'response', 'enume'])
+      .set('ethRouter', 'singleton', require('./routes/ethRouter'), ['xcatalog', 'ServerExceptions', 'ethContractService', 'ethTrxService', 'lockerService', 'response', 'enume'])
 
     ;
 

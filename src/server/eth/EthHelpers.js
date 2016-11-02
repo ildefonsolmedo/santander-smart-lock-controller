@@ -15,7 +15,7 @@ module.exports = {
   contract: {
     get: function (contract) {
         return new Promise(function (resolve, reject) {
-        
+  
             fs.readFile(__dirname + '/contracts/' + contract, function (err, data) {
                 
                 if (err) {
@@ -30,11 +30,9 @@ module.exports = {
     },
     call: function (contract,from,data,method) {
       return new Promise(function (resolve, reject) {
-
+        //0x4d9a495a37fe996177583158c1aefd363a122f55
         var str = web3.toAscii('0xc6888fa10000000000000000000000000000000000000000000000000000000000000003');
             console.log('strrrrrr',str);
-            
-
       });
 
     },
@@ -191,6 +189,7 @@ module.exports = {
     },
     status : function () {
         return new Promise(function (resolve, reject) {
+          
           if (web3.isConnected()) {
               var _info = {
                   api: web3.version.api,
