@@ -4,7 +4,7 @@
 var config = require('config'),
 	catalog = require('xcatalog'),
 	Cylon = require('cylon'),
-	LCD = require('./lcd.js'),
+	LCD = require('./util/lcd.js'),
 	lcd = new LCD('/dev/i2c-1', 0x3F),
 	os = require('os'),
 	noble = require('noble');
@@ -27,8 +27,8 @@ catalog.ready().then(function (catalog) {
 
 	//Create API server
 	var oServerConfig =	config.server;
-			oServerConfig.routers = config.routers;
-			oServerConfig.log = config.log;
+		oServerConfig.routers = config.routers;
+		oServerConfig.log = config.log;
 	var server = serverSetup.createAPIServer(oServerConfig);
 
 	startLocker();
@@ -65,7 +65,7 @@ function startLocker() {
 				// De-energise lock
 				my.lock.turnOff();
 				lcd.clear()
-						.setCursor(0,0).print('Bye!');
+					.setCursor(0,0).print('Bye!');
 				process.exit(0);
 			});
 

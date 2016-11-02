@@ -6,7 +6,7 @@
 	"private": true,
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/elmurci/api-smart-locker"
+		"url": "git+https://github.com/elmurci/api-smart-locker.git"
 	},
 	"main": "app.js",
 	"scripts": {
@@ -20,7 +20,7 @@
 		"node": "4.x"
 	},
 	"author": "Javi Romero, Stefan Blaginov",
-	"license": "none",
+	"license": "UNLICENSED",
 	"dependencies": {
 		"bluebird": "^3.0.6",
 		"body-parser": "^1.12.2",
@@ -80,5 +80,9 @@
 		"helpers": "src/server/helper",
 		"utils": "src/server/util",
 		"structs": "src/server/struct"
-	}
+	},
+  "bugs": {
+    "url": "https://github.com/elmurci/api-smart-locker/issues"
+  },
+  "homepage": "https://github.com/elmurci/api-smart-locker#readme"
 }
