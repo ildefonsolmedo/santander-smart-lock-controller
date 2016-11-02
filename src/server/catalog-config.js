@@ -44,7 +44,7 @@ function load(xcatalog, onTest) {
       .set('enume', 'constant', require('./../../lib/enum'))
       .set('response', 'constant', structs('Response'))
       .set('exceptions', 'constant', exceptions('ServiceExceptions'))
-      .set('ServerExceptions', 'singleton', require('./exception/serverExceptions'), ['i18n', 'restify', 'logger', 'util', 'exceptions'])
+      .set('ServerExceptions', 'singleton', require('./exception/ServerExceptions'), ['i18n', 'restify', 'logger', 'util', 'exceptions'])
       // Server
 
       // Ethereum Contracts
@@ -54,14 +54,14 @@ function load(xcatalog, onTest) {
       // Ethereum Transactions
       .set('transactionModel', 'singleton', ethtransaction('TransactionModel'), ['i18n', 'enume', 'moment', 'config', 'ethHelper'])
       .set('ethTrxService', 'singleton', ethtransaction('TransactionService'), ['xcatalog', 'moment', 'i18n', 'enume', 'exceptions','transactionModel'])
-      
+
       // Ethereum Locker
       .set('lockerModel', 'singleton', ethlocker('LockerModel'), ['i18n', 'enume', 'moment', 'config', 'ethHelper'])
       .set('lockerService', 'singleton', ethlocker('LockerService'), ['xcatalog', 'moment', 'i18n', 'enume', 'exceptions','lockerModel'])
 
       // Ethereum Helper
-      .set('ethHelper', 'constant', require('./eth/ethHelpers'))
-      
+      .set('ethHelper', 'constant', require('./eth/EthHelpers'))
+
       // catalog DI example
       // serverSetup is the ID of the catalog item,
       // service is the type [singleton, service, model, constant, factory]
