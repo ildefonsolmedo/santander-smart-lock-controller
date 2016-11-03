@@ -11,7 +11,8 @@ var config = require('config'),
 
 //Hardware-related settings
 const DEFAULT_TITLE = 'Smart Locker',
-	SECONDS_TO_LOCK = 3;
+	SECONDS_TO_LOCK = 3,
+	INTERNAL_TIMER_HAS_PRIORITY = true;
 
 console.log('Configuration environment: ' + config.util.getEnv('NODE_ENV'));
 console.log('Configuration instance: ' + config.util.getEnv('NODE_APP_INSTANCE'));
@@ -77,7 +78,7 @@ function startLocker() {
 				//
 				if (result) {
 						my.doUnlock(my);
-				} else if (isUnlocked) {
+				} else if (isUnlocked && !INTERNAL_TIMER_HAS_PRIORITY) {
 						my.doLock(my);
 				}
 			}, 1000);
