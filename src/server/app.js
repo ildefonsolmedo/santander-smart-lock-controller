@@ -33,7 +33,6 @@ catalog.ready().then(function (catalog) {
 	var server = serverSetup.createAPIServer(oServerConfig);
 
 	startLocker();
-
 }).catch(function (reason) {
 		console.error(reason);
 });
@@ -84,7 +83,7 @@ function startLocker() {
 			}, 1000);
 
 			//Go into standby mode
-			my.standbyState(my);
+			// my.standbyState(my);
 		},
 
 		standbyState: function (my) {
@@ -132,6 +131,28 @@ function startLocker() {
 			lcd.clear().print('Locked.');
 			console.log('Locked.');
 			my.standbyState(my);
+		},
+
+		desplayNearbyBleDevices: function (my) {
+			noble.on('stateChange', function (state) {
+				if (state === 'poweredOn') {
+					noble.startScanning([], true);
+				} else {
+					noble.stopScanning();
+				}
+			});
+
+			noble.on('discover', function (peripheral) {
+				console.log('Found device with local name: ' + peripheral.advertisement.localName);
+				console.log('advertising the following service uuid\'s: ' + peripheral.advertisement.serviceUuids);
+				console.log(peripheral.rssi);
+				console.log();
+				peripheral.discoverServices([], function (err, services) {
+					console.log(services);
+				});
+				console.log();
+				console.log();
+			});
 		}
 	}).start();
 }
