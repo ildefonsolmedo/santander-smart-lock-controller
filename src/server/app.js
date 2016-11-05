@@ -7,7 +7,7 @@ var config = require('config'),
 	LCD = require('./util/lcd.js'),
 	lcd = new LCD('/dev/i2c-1', 0x3F),
 	os = require('os'),
-	noble = require('noble');
+	bleno = require('bleno');
 
 //Hardware-related settings
 const DEFAULT_TITLE = 'Smart Locker',
@@ -31,6 +31,20 @@ catalog.ready().then(function (catalog) {
 		oServerConfig.routers = config.routers;
 		oServerConfig.log = config.log;
 	var server = serverSetup.createAPIServer(oServerConfig);
+
+	bleno.on('stateChange', function(state) {
+		console.log('on -> stateChange: ' + state);
+		if (state === 'poweredOn') {
+			console.log('start adv');
+			//bleno.setServices(primaryService);
+			bleno.startAdvertising('Smart', ['fffffffffffffffffffffffffffffff0']);
+
+		}
+		else {
+			console.log('stop adv');
+			bleno.stopAdvertising();
+		}
+	});
 
 	startLocker();
 }).catch(function (reason) {
@@ -73,7 +87,6 @@ function startLocker() {
 				let result = (Math.random() >= 0.95);
 
 				console.log('interval -----------------' + result);
-
 				//
 				if (result) {
 						my.doUnlock(my);
@@ -83,7 +96,9 @@ function startLocker() {
 			}, 1000);
 
 			//Go into standby mode
-			// my.standbyState(my);
+			my.standbyState(my);
+
+			//my.bleAdvertise(my);
 		},
 
 		standbyState: function (my) {
@@ -133,26 +148,60 @@ function startLocker() {
 			my.standbyState(my);
 		},
 
-		desplayNearbyBleDevices: function (my) {
-			noble.on('stateChange', function (state) {
+		bleAdvertise: function (my) {
+			var Descriptor = bleno.Descriptor;
+			var descriptor = new Descriptor({
+				uuid: '2901',
+				value: 'value' // static value, must be of type Buffer or string if set
+			});
+
+			var Characteristic = bleno.Characteristic;
+			var characteristic = new Characteristic({
+				uuid: 'fffffffffffffffffffffffffffffff1', // or 'fff1' for 16-bit
+				properties: ['write'], // can be a combination of 'read', 'write', 'writeWithoutResponse', 'notify', 'indicate'
+				secure: [], // enable security for properties, can be a combination of 'read', 'write', 'writeWithoutResponse', 'notify', 'indicate'
+				value: null, // optional static value, must be of type Buffer - for read only characteristics
+				descriptors: [descriptor],
+				onReadRequest: function (offset, callback) {
+					if(!offset) {
+						this._value = new Buffer(JSON.stringify({
+							'lel' : 'lol'
+						}));
+					}
+					console.log('UptimeCharacteristic - onReadRequest: value = ' +
+						this._value.slice(offset, offset + bleno.mtu).toString()
+					);
+					callback(this.RESULT_SUCCESS, this._value.slice(offset, this._value.length));
+				},
+				onWriteRequest: function (data, offset, withoutResponse, callback) {
+					console.log(data.toString());
+					callback(this.RESULT_SUCCESS);
+				}, // optional write request handler, function(data, offset, withoutResponse, callback) { ...}
+				onSubscribe: null, // optional notify/indicate subscribe handler, function(maxValueSize, updateValueCallback) { ...}
+				onUnsubscribe: null, // optional notify/indicate unsubscribe handler, function() { ...}
+				onNotify: null, // optional notify sent handler, function() { ...}
+				onIndicate: null // optional indicate confirmation received handler, function() { ...}
+			});
+
+			var PrimaryService = bleno.PrimaryService;
+			var primaryService = new PrimaryService({
+				uuid: 'fffffffffffffffffffffffffffffff0', // or 'fff0' for 16-bit
+				characteristics: [characteristic]
+			});
+
+			bleno.on('stateChange', function(state) {
+				console.log('on -> stateChange: ' + state);
 				if (state === 'poweredOn') {
-					noble.startScanning([], true);
-				} else {
-					noble.stopScanning();
+					bleno.setServices(primaryService);
+					bleno.startAdvertising('Smart', ['fffffffffffffffffffffffffffffff0']);
+
+				}
+				else {
+					bleno.stopAdvertising();
 				}
 			});
 
-			noble.on('discover', function (peripheral) {
-				console.log('Found device with local name: ' + peripheral.advertisement.localName);
-				console.log('advertising the following service uuid\'s: ' + peripheral.advertisement.serviceUuids);
-				console.log(peripheral.rssi);
-				console.log();
-				peripheral.discoverServices([], function (err, services) {
-					console.log(services);
-				});
-				console.log();
-				console.log();
-			});
+			bleno.on('rssiUpdate', function(rssi) {console.log(rssi)});
 		}
 	}).start();
 }
