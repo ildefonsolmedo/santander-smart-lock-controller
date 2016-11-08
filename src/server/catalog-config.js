@@ -70,7 +70,7 @@ function load(xcatalog, onTest) {
 
       //Routes
       .set('genRouter', 'singleton', require('./routes/genRouter'), ['xcatalog', 'ServerExceptions'])
-      .set('ethRouter', 'singleton', require('./routes/ethRouter'), ['xcatalog', 'ServerExceptions', 'ethContractService', 'ethTrxService', 'lockerService', 'response', 'enume'])
+      .set('ethRouter', 'singleton', require('./routes/ethRouter'), ['xcatalog', 'ServerExceptions', 'ethContractService', 'ethTrxService', 'lockerService', 'response', 'enume','config'])
 
     ;
 

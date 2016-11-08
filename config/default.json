@@ -54,6 +54,12 @@
     "routers": [
         "eth"
     ],
+    
+    "eth": {
+        "contract": "0x3f0ced70bf161da182990b3f88311ca22df65b6a",
+        "sender": 0,
+        "default": 0
+    },
 
     "ca-apm-probe": {
         "enabled": false,

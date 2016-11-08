@@ -44,45 +44,123 @@ class LockerModel {
      * @custom public
      * @returns {Promise} Returns a new promise with the contract detail.
      */
-    status (contract,sender,wait) {
+    status (contract, sender) {
 
         let compiled, abi;
         const ethHelp = this.ethHelper;
 
         return new Promise(function (resolve, reject) {
+            
+            return ethHelp.util.status().then(function(result){
 
-            //ethHelp.util.status().then(function(result){
+                ethHelp.account.default(sender);
  
-                //ethHelp.account.default(sender);
-
-                // ethHelp.contract.get(contract + '.sol')
-                // .then(function (result) {
-                //     return ethHelp.util.compile(result);
-                // })
-                // .then(function (result) {
-                //     // create contract
-                //     return (Math.random() >= 0.5);
-                // })
-                // .then(function (result) {
-                //     resolve(result);
-                // })
-                // .catch(function (error) {
-                //     reject(error);
-                // });
+                var mSig = ethHelp.util.sig('getStatus()'),
+                    mVal = '0000000000000000000000000000000000000000000000000000000000000000',
+                    code = '0x' + mSig + mVal;
+      
+                ethHelp.trx.call(ethHelp.account.get(sender), contract, code)
+                .then(function (result) {
+                    resolve(result);
+                })
+                .catch(function (error) {
+                    reject(error);
+                });
                 
-                //return (Math.random() >= 0.5);
-
-            // }).catch(function (error) {
-            //     reject(error);
-            // });
-            
-            console.log('return');
-            
-            resolve(Math.random() >= 0.5);
+            }).catch(function (error) {
+                reject(error);
+            });
 
         });
 
     }
+    
+    /**
+     * Returns .
+     * @public
+     * @memberOf LockerModel
+     * @param {string} contract Contract name
+     * @param {string} sender Address of the sender, if null it will use the default one
+     * @param {boolean} wait If set to true it will wait until the contract is mined. If not it will return the transactionHash straight away and some other process will have to monitor the status.
+     * @custom public
+     * @returns {Promise} Returns a new promise with the contract detail.
+     */
+    unlock (contract, sender) {
+
+        const ethHelp = this.ethHelper;
+
+        return new Promise(function (resolve, reject) {
+             
+            return ethHelp.util.status().then(function(result){
+                
+                ethHelp.account.default(sender);
+
+                var mSig = ethHelp.util.sig('unlock()'),
+                    mVal = '0000000000000000000000000000000000000000000000000000000000000000',
+                    code = mSig + mVal;
+  
+                ethHelp.trx.send(ethHelp.account.get(sender), contract, code)
+                .then(function (result) {
+                    resolve(result);
+                })
+                .catch(function (error) {
+                    reject(error);
+                });
+                
+            }).catch(function (error) {
+                reject(error);
+            });
+
+        });
+
+    }
+    
+    /**
+     * Returns .
+     * @public
+     * @memberOf LockerModel
+     * @param {string} contract Contract name
+     * @param {string} sender Address of the sender, if null it will use the default one
+     * @param {boolean} wait If set to true it will wait until the contract is mined. If not it will return the transactionHash straight away and some other process will have to monitor the status.
+     * @custom public
+     * @returns {Promise} Returns a new promise with the contract detail.
+     */
+    deploy (name,waitUntilMined) {
+        var compiled,
+            abi,
+            ethHelp = this.ethHelper;
+            
+        return new Promise(function (resolve, reject) {
+            
+            ethHelp.util.getContractOrAbi(name)
+            .then(function (result) {
+                return ethHelp.util.compile(result);
+            })
+            .then(function (result) {
+                compiled = result;
+                abi = compiled.info.abiDefinition;
+                //console.log('abi',abi);
+                return ethHelp.util.saveAbi(name,abi);
+            })
+            .then(function (result) {
+                var code = compiled.code;
+                // create contract
+                return ethHelp.contract.new(name,code,abi,0,waitUntilMined);
+                
+            })
+            .then(function (result) {
+                
+                resolve(result);
+  
+            })
+            .catch(function (error) {
+                reject(error);
+            });
+        
+        });
+    
+}
+
 
 }
 

@@ -72,11 +72,13 @@ module.exports = {
     },
     new: function (contract,code,abi,sender,wait) {
       return new Promise(function (resolve, reject) {
-          
-          console.log('config.contractGas',config.eth.contractGas);
         web3.eth.contract(abi).new(
-        {
-            from: sender, 
+            ['0xa742ba1022b4d534ddf09fe7bb017362180adc55','0x2fb6b07057adaea104f25054d073947c438d3968'], 
+            2,
+            10,
+            {
+            
+            from: web3.eth.accounts[sender], 
             data: code,
             gas: config.eth.contractGas
         }, function (err, contract) {
@@ -115,7 +117,7 @@ module.exports = {
         reject(err);
       });
     },
-    get: function(account,secret) {
+    unlock: function(account,secret) {
       return new Promise(function (resolve, reject) {
 
         let accountObject = accounts.get(address,secret);
@@ -127,12 +129,19 @@ module.exports = {
         }
 
       });
+    },
+    default: function(account) {
+      web3.eth.defaultAccount = web3.eth.accounts[account];
+    },
+    get: function(account) {
+      return web3.eth.accounts[account];
     }
   },
   trx: {
-    call: function (to,data) {
+    call: function (from,to,data) {
       return new Promise(function (resolve, reject) {
-        
+        console.log('to',to);
+        console.log('data',data);
         web3.eth.call({
             to: to, 
             data: data
@@ -146,10 +155,10 @@ module.exports = {
 
       }); 
     },
-    send: function (data) {
+    send: function (from, to, code) {
       return new Promise(function (resolve, reject) {
         
-        web3.eth.sendTransaction({data: code}, function(err, address) {
+        web3.eth.sendTransaction({from: from, to: to,data: code, gas: 100000}, function(err, address) {
           if (!err) {
             resolve(address);
           } else {
@@ -187,24 +196,58 @@ module.exports = {
 
         });
     },
+    sig: function (sig) {
+        return web3.sha3(sig).substr(0, 8);
+    },
     status : function () {
         return new Promise(function (resolve, reject) {
-          
+ 
           if (web3.isConnected()) {
               var _info = {
-                  api: web3.version.api,
-                  ethereum: web3.version.ethereum,
-                  network: web3.version.network,
-                  node: web3.version.node,
-                  provider: web3.currentProvider
+                  api: web3.version.api
+                  //ethereum: web3.version.ethereum,
+                  //network: web3.version.network,
+                  //node: web3.version.node,
+                  //provider: web3.currentProvider
               }
               resolve(_info);
-
           } else {
-              reject('Ethereum node not started');
+            reject('Ethereum node not started');
           }
         
         });
+    },
+    getContractOrAbi: function(name) {
+
+        return new Promise(function (resolve, reject) {
+ 
+          fs.readFile(__dirname + '/contracts/' + name, function (err, data) {
+            
+            if (err) {
+                reject(err);
+            } else {
+                resolve(data.toString());
+            }
+
+          });
+        
+        });
+
+    },
+    saveAbi: function(name,abi) {
+      
+      return new Promise(function (resolve, reject) {
+ 
+          fs.writeFile(__dirname + '/contracts/' + name + '.abi', abi, function(err) {
+              if(err) {
+                reject(err);
+              } else {
+                resolve(true);
+              }
+          });
+        
+        });
+       
     }
   }
 };

@@ -2,41 +2,27 @@
 'use strict';
 const Validator = require('../util/Validator');
 
-module.exports = function (xcatalog, ServerExceptions, ethContractService, ethTrxService, ethLockService, response, e) {
+module.exports = function (xcatalog, ServerExceptions, ethContractService, ethTrxService, ethLockService, response, e, config) {
 
   const server = xcatalog('apiserver');
-
+  
   /* 
    */
   server.post({ path: '/lock/status/', version: '1.0.0' }, function(req, res, next) {
     
-    // var _wait = req.body.wait,
-    // _contract = req.body.contract,
-    // _method = req.body.method,
-    // _data = req.body.data,
-    // _local = req.body.local,
-    // _from = req.body.from;
+    var _contract = req.body.contract;
     
-    //web3.sha3("multiply(uint256)").substring(0, 8)
+    const validator = new Validator({ contract: _contract });
 
-    //const validator = new Validator({ from: _from, wait : _wait,  contract: _contract, method: _method, data: _data, local: _local });
+    validator.path('contract', ['string', 'required']);
 
-    // validator.path('contract', ['string', 'required']);
-    // validator.path('method', ['string', 'required']);
-    // validator.path('data', ['required']);
-    // validator.path('wait', ['boolean','required']);
-    // validator.path('local', ['boolean','required']);
-
-    // if (validator.hasErrors()) {
-    //     return next( ServerExceptions.createValidationException(validator.getErrors(), req) );
-    // } else {
+    if (validator.hasErrors()) {
+        return next( ServerExceptions.createValidationException(validator.getErrors(), req) );
+    } else {
       
-      ethLockService.status()
+      ethLockService.status(_contract, 0)
       .then(function (result) {
-        
-        //TODO set API response codes 
         return next(res.json({'status': result}));
-      
       })
       .catch(function (error) {
         if(error instanceof Error){
@@ -46,8 +32,72 @@ module.exports = function (xcatalog, ServerExceptions, ethContractService, ethTr
         }
       });
 
-    //}
+    }
 
+
+  });
+  
+  /* 
+   */
+  server.post({ path: '/lock/open/', version: '1.0.0' }, function(req, res, next) {
+    
+    var _contract = req.body.contract,
+        _sender = req.body.sender;
+    
+    const validator = new Validator({ contract: _contract, sender: _sender });
+
+    validator.path('contract', ['string', 'required']);
+    validator.path('sender', ['number', 'required']);
+
+    if (validator.hasErrors()) {
+        return next( ServerExceptions.createValidationException(validator.getErrors(), req) );
+    } else {
+      
+      ethLockService.unlock(_contract, _sender)
+      .then(function (result) {
+        return next(res.json({'trxHash': result}));
+      })
+      .catch(function (error) {
+        if(error instanceof Error){
+          return next( ServerExceptions.createException(error, req) );
+        } else {
+          return next( ServerExceptions.createServerErrorException(error, req));
+        }
+      });
+
+    }
+
+
+  });
+  
+  /* 
+   */
+  server.post({ path: '/lock/deploy/', version: '1.0.0' }, function(req, res, next) {
+      
+      var _contract = req.body.contract,
+          _wait = req.body.wait;
+    
+    const validator = new Validator({ contract: _contract});
+
+    validator.path('contract', ['string', 'required']);
+
+    if (validator.hasErrors()) {
+        return next( ServerExceptions.createValidationException(validator.getErrors(), req) );
+    } else {
+      
+      ethLockService.deploy(_contract,_wait)
+      .then(function (result) {
+        return next(res.json(result));
+      })
+      .catch(function (error) {
+        if(error instanceof Error){
+          return next( ServerExceptions.createException(error, req) );
+        } else {
+          return next( ServerExceptions.createServerErrorException(error, req));
+        }
+      });
+      
+    }
 
   });
 

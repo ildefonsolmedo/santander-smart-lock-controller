@@ -21,12 +21,12 @@ class LockerService {
    * @constructor
    * @returns {Object} Returns a new ContractService service object.
    */
-    constructor (catalog, moment, i18n, enume, exceptions, contractModel) {
+    constructor (catalog, moment, i18n, enume, exceptions, lockerModel) {
         Exceptions = exceptions;
         xcatalog = catalog;
         moment = moment;
         this.i18n = i18n;
-        this.model = contractModel;
+        this.model = lockerModel;
         this.enume = enume;
     }
 
@@ -39,8 +39,8 @@ class LockerService {
      * @custom public 
      * @returns {string} Returns the transaction hash id of the contract deployment
      */
-    status(contract,sender,wait) {
-
+    status(contract, sender) {
+      
       let itself = this;
       return new Promise(function (resolve, reject) {
         
@@ -54,11 +54,69 @@ class LockerService {
         //   reject(new Exceptions.Validation(vErrors) );
         //   return;
         // } else {
-          console.log('entramos service');
-          return itself.model.status()
+          
+          return itself.model.status(contract, sender)
               .then(function(response){
                 
                 console.log('back from model');
+                resolve(response);
+              },function(err){
+                reject(err);
+              })
+              .catch(function(err){
+                reject(err);
+              });
+
+        //}
+      });
+
+    }
+    
+    /**
+     * Deploys a new contract in the Ethereum blockchain.
+     * @memberOf EthContractService
+     * @param {string} contract Contract name
+     * @param {string} sender Address of the sender, if null it will use the default one
+     * @param {boolean} wait If set to true it will wait until the contract is mined. If not it will return the transactionHash straight away and some other process will have to monitor the status.
+     * @custom public 
+     * @returns {string} Returns the transaction hash id of the contract deployment
+     */
+    unlock(contract, sender) {
+      
+      let itself = this;
+      return new Promise(function (resolve, reject) {
+        
+          return itself.model.unlock(contract, sender)
+              .then(function(response){
+                resolve(response);
+              },function(err){
+                reject(err);
+              })
+              .catch(function(err){
+                reject(err);
+              });
+
+        //}
+      });
+
+    }
+    
+    /**
+     * Deploys a new contract in the Ethereum blockchain.
+     * @memberOf EthContractService
+     * @param {string} contract Contract name
+     * @param {string} sender Address of the sender, if null it will use the default one
+     * @param {boolean} wait If set to true it will wait until the contract is mined. If not it will return the transactionHash straight away and some other process will have to monitor the status.
+     * @custom public 
+     * @returns {string} Returns the transaction hash id of the contract deployment
+     */
+    deploy(name,waitUntilMined) {
+      
+      let itself = this;
+      return new Promise(function (resolve, reject) {
+        
+          return itself.model.deploy(name,waitUntilMined)
+              .then(function(response){
                 resolve(response);
               },function(err){
                 reject(err);

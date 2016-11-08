@@ -1,9 +1,9 @@
 {
 
     "server": {
-        "port": 8480,
+        "port": 8483,
         "protocol": "HTTP",
-        "url": "http://localhost:8480",
+        "url": "http://localhost:8483",
         "documentation" : {
           "enabled" : true,
           "destination": "docs",
