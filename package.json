@@ -48,7 +48,6 @@
     "moment": "^2.10.3",
     "moment-timezone": "^0.4.1",
     "mongodb": "^2.1.4",
-    "noble": "^1.7.0",
     "nodemailer": "^2.0.0",
     "promise-retry": "^1.0.1",
     "request": "^2.67.0",

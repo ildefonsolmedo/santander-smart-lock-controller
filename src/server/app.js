@@ -32,20 +32,6 @@ catalog.ready().then(function (catalog) {
 		oServerConfig.log = config.log;
 	var server = serverSetup.createAPIServer(oServerConfig);
 
-	bleno.on('stateChange', function(state) {
-		console.log('on -> stateChange: ' + state);
-		if (state === 'poweredOn') {
-			console.log('start adv');
-			//bleno.setServices(primaryService);
-			bleno.startAdvertising('Smart', ['fffffffffffffffffffffffffffffff0']);
-
-		}
-		else {
-			console.log('stop adv');
-			bleno.stopAdvertising();
-		}
-	});
-
 	startLocker();
 }).catch(function (reason) {
 		console.error(reason);
@@ -87,7 +73,7 @@ function startLocker() {
 				let result = (Math.random() >= 0.95);
 
 				console.log('interval -----------------' + result);
-				//
+
 				if (result) {
 						my.doUnlock(my);
 				} else if (isUnlocked && !INTERNAL_TIMER_HAS_PRIORITY) {
@@ -98,14 +84,14 @@ function startLocker() {
 			//Go into standby mode
 			my.standbyState(my);
 
-			//my.bleAdvertise(my);
+			my.bleAdvertise(my);
 		},
 
 		standbyState: function (my) {
-			oldIp = getWiFiIp(os);
+			oldIp = getIpAddress(os);
 			my.displayDefaultMessage(oldIp);
 			every((5).seconds(), function () {
-				var newIp = getWiFiIp(os);
+				var newIp = getIpAddress(os);
 				if (oldIp != newIp) {
 					oldIp = newIp;
 					my.displayDefaultMessage(newIp);
@@ -156,25 +142,18 @@ function startLocker() {
 			});
 
 			var Characteristic = bleno.Characteristic;
-			var characteristic = new Characteristic({
-				uuid: 'fffffffffffffffffffffffffffffff1', // or 'fff1' for 16-bit
+			var receiveEthereumTransactionCharacteristic = new Characteristic({
+				uuid: '30e603adfcbf4e9da47b4ca20945ee60', // or 'fff1' for 16-bit
 				properties: ['write'], // can be a combination of 'read', 'write', 'writeWithoutResponse', 'notify', 'indicate'
 				secure: [], // enable security for properties, can be a combination of 'read', 'write', 'writeWithoutResponse', 'notify', 'indicate'
 				value: null, // optional static value, must be of type Buffer - for read only characteristics
-				descriptors: [descriptor],
-				onReadRequest: function (offset, callback) {
-					if(!offset) {
-						this._value = new Buffer(JSON.stringify({
-							'lel' : 'lol'
-						}));
-					}
-					console.log('UptimeCharacteristic - onReadRequest: value = ' +
-						this._value.slice(offset, offset + bleno.mtu).toString()
-					);
-					callback(this.RESULT_SUCCESS, this._value.slice(offset, this._value.length));
-				},
+				descriptors: [],
+				onReadRequest: null,
 				onWriteRequest: function (data, offset, withoutResponse, callback) {
 					console.log(data.toString());
+					console.log(offset.toString());
+					console.log(withoutResponse.toString());
+					lcd.clear().print(data.toString());
 					callback(this.RESULT_SUCCESS);
 				}, // optional write request handler, function(data, offset, withoutResponse, callback) { ...}
 				onSubscribe: null, // optional notify/indicate subscribe handler, function(maxValueSize, updateValueCallback) { ...}
@@ -183,18 +162,79 @@ function startLocker() {
 				onIndicate: null // optional indicate confirmation received handler, function() { ...}
 			});
 
+			var manufacturerNameStringCharacteristic = new Characteristic({
+				uuid: '2A29',
+				properties: ['read'],
+				secure: [],
+				value: new Buffer('Isban UK'),
+				descriptors: [],
+				onReadRequest: null,
+				onWriteRequest: null,
+				onSubscribe: null,
+				onUnsubscribe: null,
+				onNotify: null,
+				onIndicate: null
+			}),
+			modelNumberStringCharacteristic = new Characteristic({
+				uuid: '2A24',
+				properties: ['read'],
+				secure: [],
+				value: new Buffer('Smart Locker Mark 1'),
+				descriptors: [],
+				onReadRequest: null,
+				onWriteRequest: null,
+				onSubscribe: null,
+				onUnsubscribe: null,
+				onNotify: null,
+				onIndicate: null
+			});
+
+			var deviceNameCharacteristic = new Characteristic({
+				uuid: '2A00',
+				properties: ['read'],
+				secure: [],
+				value: new Buffer('Smart Locker'),
+				descriptors: [],
+				onReadRequest: null,
+				onWriteRequest: null,
+				onSubscribe: null,
+				onUnsubscribe: null,
+				onNotify: null,
+				onIndicate: null
+			}),
+			appearanceCharacteristic = new Characteristic({
+				uuid: '2A01',
+				properties: ['read'],
+				secure: [],
+				value: new Buffer('White metal locker.'),
+				descriptors: [],
+				onReadRequest: null,
+				onWriteRequest: null,
+				onSubscribe: null,
+				onUnsubscribe: null,
+				onNotify: null,
+				onIndicate: null
+			});
+
 			var PrimaryService = bleno.PrimaryService;
-			var primaryService = new PrimaryService({
-				uuid: 'fffffffffffffffffffffffffffffff0', // or 'fff0' for 16-bit
-				characteristics: [characteristic]
+			var receiveEthereumTransactionService = new PrimaryService({
+				uuid: '030011ecfcc8412bbfb6e1c34af1ea36',
+				characteristics: [receiveEthereumTransactionCharacteristic]
+			}),
+			deviceInformationService = new PrimaryService({
+				uuid: '180A',
+				characteristics: [manufacturerNameStringCharacteristic, modelNumberStringCharacteristic]
+			}),
+			genericAccessService = new PrimaryService({
+				uuid: '1800',
+				characteristics: [deviceNameCharacteristic, appearanceCharacteristic]
 			});
 
 			bleno.on('stateChange', function(state) {
 				console.log('on -> stateChange: ' + state);
 				if (state === 'poweredOn') {
-					bleno.setServices(primaryService);
-					bleno.startAdvertising('Smart', ['fffffffffffffffffffffffffffffff0']);
-
+					bleno.setServices([genericAccessService, deviceInformationService, receiveEthereumTransactionService]);
+					bleno.startAdvertising('Smart Locker', ['33d8a428b86b4e33ad426f46300959a5']);
 				}
 				else {
 					bleno.stopAdvertising();
@@ -206,13 +246,23 @@ function startLocker() {
 	}).start();
 }
 
-function getWiFiIp (os) {
+function getIpAddress (os) {
 	var interfaces = os.networkInterfaces();
 	var ipAddresses = [];
-	for (var interfaceI in interfaces.wlan0) {
-		var address = interfaces.wlan0[interfaceI];
-		if (address.family === 'IPv4' && !address.internal) {
-			ipAddresses.push(address.address);
+
+	if (typeof interfaces.eth0 !== 'undefined') {
+		for (var interfaceI in interfaces.eth0) {
+			var address = interfaces.eth0[interfaceI];
+			if (address.family === 'IPv4' && !address.internal) {
+				ipAddresses.push(address.address);
+			}
+		}
+	} else {
+		for (var interfaceI in interfaces.wlan0) {
+			var address = interfaces.wlan0[interfaceI];
+			if (address.family === 'IPv4' && !address.internal) {
+				ipAddresses.push(address.address);
+			}
 		}
 	}
 
