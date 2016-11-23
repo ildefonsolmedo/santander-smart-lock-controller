@@ -41,121 +41,121 @@ catalog.ready().then(function (catalog) {
 let isUnlocked = false;
 
 function startLocker() {
-    var locker = catalog('lockerService'),
-        config = catalog('config');
+		var locker = catalog('lockerService'),
+				config = catalog('config');
 
-            // setInterval(function() {
-            //     locker.status(config.eth.contract, config.eth.sender)
-            //     .then(function(response){
+						// setInterval(function() {
+						//     locker.status(config.eth.contract, config.eth.sender)
+						//     .then(function(response){
 
-            //         console.log('status',response);
+						//         console.log('status',response);
 
-            //         resolve(response);
+						//         resolve(response);
 
-            //         if (response) {
-            //             my.doUnlock(my);
-            //             my.countdownAndLock(my);
-            //         } else {
-            //             my.doLock(my);
-            //         }
+						//         if (response) {
+						//             my.doUnlock(my);
+						//             my.countdownAndLock(my);
+						//         } else {
+						//             my.doLock(my);
+						//         }
 
-            //     },function(err){
-            //         reject(err);
-            //     })
-            //     .catch(function(err){
-            //         reject(err);
-            //     });
+						//     },function(err){
+						//         reject(err);
+						//     })
+						//     .catch(function(err){
+						//         reject(err);
+						//     });
 
-            // }, 1000);
+						// }, 1000);
 
-    //     Cylon.robot({
-    //     connections: {
-    //         raspi: { adaptor: 'raspi' }
-    //     },
+		//     Cylon.robot({
+		//     connections: {
+		//         raspi: { adaptor: 'raspi' }
+		//     },
 
-    //     devices: {
-    //         lock: { driver: 'relay', pin: 11, type: 'open', connection: 'raspi' }
-    //     },
+		//     devices: {
+		//         lock: { driver: 'relay', pin: 11, type: 'open', connection: 'raspi' }
+		//     },
 
-    //     work: function (my) {
-    //         // Due to a bug in Cylon.js, the app crashes the first time it tries to manipulate the GPIO pins. This block triggers a crash and an app restart.
-    //         my.lock.turnOn();
-    //         after(400, function() {
-    //             my.lock.turnOff();
-    //         });
+		//     work: function (my) {
+		//         // Due to a bug in Cylon.js, the app crashes the first time it tries to manipulate the GPIO pins. This block triggers a crash and an app restart.
+		//         my.lock.turnOn();
+		//         after(400, function() {
+		//             my.lock.turnOff();
+		//         });
 
-    //         process.on('SIGINT', function (my) {
-    //             console.log('Shut down.');
-    //             // De-energise lock
-    //             my.lock.turnOff();
-    //             lcd.clear()
-    //                 .setCursor(0,0).print('Bye!');
-    //             process.exit(0);
-    //         });
+		//         process.on('SIGINT', function (my) {
+		//             console.log('Shut down.');
+		//             // De-energise lock
+		//             my.lock.turnOff();
+		//             lcd.clear()
+		//                 .setCursor(0,0).print('Bye!');
+		//             process.exit(0);
+		//         });
 
-    //         my.standbyState(my);
+		//         my.standbyState(my);
 
-    //         setInterval(function() {
+		//         setInterval(function() {
 
-    //             var result = (Math.random() >= 0.5);
+		//             var result = (Math.random() >= 0.5);
 
-    //             //
-    //             if (result) {
-    //                 my.doUnlock(my);
-    //                 my.countdownAndLock(my);
-    //             } else {
-    //                 my.doLock(my);
-    //             }
-    //         }, 1000);
+		//             //
+		//             if (result) {
+		//                 my.doUnlock(my);
+		//                 my.countdownAndLock(my);
+		//             } else {
+		//                 my.doLock(my);
+		//             }
+		//         }, 1000);
 
 
-    //     },
+		//     },
 
-    //     standbyState: function (my) {
-    //         oldIp = getWiFiIp(os);
-    //         my.displayDefaultMessage(oldIp);
-    //         every((5).seconds(), function () {
-    //             var newIp = getWiFiIp(os);
-    //             if (oldIp != newIp) {
-    //                 oldIp = newIp;
-    //                 my.displayDefaultMessage(newIp);
-    //             }
-    //         });
-    //     },
+		//     standbyState: function (my) {
+		//         oldIp = getWiFiIp(os);
+		//         my.displayDefaultMessage(oldIp);
+		//         every((5).seconds(), function () {
+		//             var newIp = getWiFiIp(os);
+		//             if (oldIp != newIp) {
+		//                 oldIp = newIp;
+		//                 my.displayDefaultMessage(newIp);
+		//             }
+		//         });
+		//     },
 
-    //     displayDefaultMessage: function (ipAddress) {
-    //         lcd.clear()
-    //             .setCursor(0,0).print(DEFAULT_TITLE)
-    //             .setCursor(0,1).print(ipAddress);
-    //     },
+		//     displayDefaultMessage: function (ipAddress) {
+		//         lcd.clear()
+		//             .setCursor(0,0).print(DEFAULT_TITLE)
+		//             .setCursor(0,1).print(ipAddress);
+		//     },
 
-    //     doUnlock: function (my) {
-    //         console.log('Unlocking.');
-    //         my.lock.turnOn();
-    //         lcd.clear().print('Unlocked.');
-    //         console.log('Unlocked.');
+		//     doUnlock: function (my) {
+		//         console.log('Unlocking.');
+		//         my.lock.turnOn();
+		//         lcd.clear().print('Unlocked.');
+		//         console.log('Unlocked.');
 
-    //         var seconds = SECONDS_TO_LOCK;
-    //         var lockingInterval = setInterval(function () {
-    //             if (seconds < 1) {
-    //                 my.doLock(my);
-    //                 clearInterval(lockingInterval);
-    //             } else {
-    //                 console.log(seconds);
-    //                 lcd.clear().setCursor(0,0).print('Unlocked.').setCursor(0,1).print(seconds.toString());
-    //                 seconds--;
-    //             }
-    //         }, (1).second());
-    //     },
+		//         var seconds = SECONDS_TO_LOCK;
+		//         var lockingInterval = setInterval(function () {
+		//             if (seconds < 1) {
+		//                 my.doLock(my);
+		//                 clearInterval(lockingInterval);
+		//             } else {
+		//                 console.log(seconds);
+		//                 lcd.clear().setCursor(0,0).print('Unlocked.').setCursor(0,1).print(seconds.toString());
+		//                 seconds--;
+		//             }
+		//         }, (1).second());
+		//     },
 
-    //     doLock: function (my) {
-    //         console.log('Locking.');
-    //         my.lock.turnOff();
-    //         lcd.clear().print('Locked.');
-    //         console.log('Locked.');
-    //         my.standbyState(my);
-    //     }
-    // }).start();
+		//     doLock: function (my) {
+		//         console.log('Locking.');
+		//         my.lock.turnOff();
+		//         lcd.clear().print('Locked.');
+		//         console.log('Locked.');
+		//         my.standbyState(my);
+		//     }
+		// }).start();
 
 	let oldIp;
 
