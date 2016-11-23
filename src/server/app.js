@@ -2,18 +2,10 @@
 /*globals Promise: true*/
 'use strict';
 var config = require('config'),
-<<<<<<< HEAD
-    catalog = require('xcatalog'),
-    Cylon = require('cylon'),
-    //locker = require('./eth/locker/LockerService'),
-	//LCD = require('./lcd.js'),
-	//lcd = new LCD('/dev/i2c-1', 0x3F),
-=======
 	catalog = require('xcatalog'),
 	Cylon = require('cylon'),
 	LCD = require('./util/lcd.js'),
 	lcd = new LCD('/dev/i2c-1', 0x3F),
->>>>>>> 4f23854bbe6a8961aa4bde26fa09f31b5f2f661e
 	os = require('os'),
 	bleno = require('bleno');
 
@@ -34,21 +26,11 @@ catalog.ready().then(function (catalog) {
 	// DI for serverSetup service
 	var serverSetup = catalog('serverSetup');
 
-<<<<<<< HEAD
-  //Create API server
-  var oServerConfig =  config.server;
-      oServerConfig.routers = config.routers;
-      oServerConfig.log = config.log;
-  var server = serverSetup.createAPIServer(oServerConfig);
-
-  startLocker();
-=======
 	//Create API server
 	var oServerConfig =	config.server;
 		oServerConfig.routers = config.routers;
 		oServerConfig.log = config.log;
 	var server = serverSetup.createAPIServer(oServerConfig);
->>>>>>> 4f23854bbe6a8961aa4bde26fa09f31b5f2f661e
 
 	startLocker();
 }).catch(function (reason) {
@@ -59,8 +41,6 @@ catalog.ready().then(function (catalog) {
 let isUnlocked = false;
 
 function startLocker() {
-<<<<<<< HEAD
-
     var locker = catalog('lockerService'),
         config = catalog('config');
 
@@ -177,7 +157,6 @@ function startLocker() {
     //     }
     // }).start();
 
-=======
 	let oldIp;
 
 	Cylon.robot({
@@ -381,7 +360,6 @@ function startLocker() {
 			bleno.on('rssiUpdate', function(rssi) {console.log(rssi)});
 		}
 	}).start();
->>>>>>> 4f23854bbe6a8961aa4bde26fa09f31b5f2f661e
 }
 
 function getIpAddress (os) {
