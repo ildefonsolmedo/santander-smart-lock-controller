@@ -30,7 +30,7 @@ catalog.ready().then(function (catalog) {
       oServerConfig.routers = config.routers;
       oServerConfig.log = config.log;
   var server = serverSetup.createAPIServer(oServerConfig);
-  
+
   startLocker();
 
 }).catch(function (reason) {
@@ -38,16 +38,16 @@ catalog.ready().then(function (catalog) {
 });
 
 function startLocker() {
-    
+
     var locker = catalog('lockerService'),
         config = catalog('config');
-        
+
             // setInterval(function() {
             //     locker.status(config.eth.contract, config.eth.sender)
             //     .then(function(response){
-                    
+
             //         console.log('status',response);
-                    
+
             //         resolve(response);
 
             //         if (response) {
@@ -56,16 +56,16 @@ function startLocker() {
             //         } else {
             //             my.doLock(my);
             //         }
-                    
+
             //     },function(err){
             //         reject(err);
             //     })
             //     .catch(function(err){
             //         reject(err);
             //     });
-                 
+
             // }, 1000);
-    
+
     //     Cylon.robot({
     //     connections: {
     //         raspi: { adaptor: 'raspi' }
@@ -81,7 +81,7 @@ function startLocker() {
     //         after(400, function() {
     //             my.lock.turnOff();
     //         });
-            
+
     //         process.on('SIGINT', function (my) {
     //             console.log('Shut down.');
     //             // De-energise lock
@@ -92,11 +92,11 @@ function startLocker() {
     //         });
 
     //         my.standbyState(my);
-            
+
     //         setInterval(function() {
-                
+
     //             var result = (Math.random() >= 0.5);
-                   
+
     //             //
     //             if (result) {
     //                 my.doUnlock(my);
@@ -105,8 +105,8 @@ function startLocker() {
     //                 my.doLock(my);
     //             }
     //         }, 1000);
-            
-            
+
+
     //     },
 
     //     standbyState: function (my) {
@@ -153,8 +153,8 @@ function startLocker() {
     //         console.log('Locked.');
     //         my.standbyState(my);
     //     }
-    // }).start();    
-    
+    // }).start();
+
 }
 
 function getWiFiIp (os) {

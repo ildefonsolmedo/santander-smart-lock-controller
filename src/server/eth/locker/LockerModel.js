@@ -50,15 +50,15 @@ class LockerModel {
         const ethHelp = this.ethHelper;
 
         return new Promise(function (resolve, reject) {
-            
+
             return ethHelp.util.status().then(function(result){
 
                 ethHelp.account.default(sender);
- 
+
                 var mSig = ethHelp.util.sig('getStatus()'),
                     mVal = '0000000000000000000000000000000000000000000000000000000000000000',
                     code = '0x' + mSig + mVal;
-      
+
                 ethHelp.trx.call(ethHelp.account.get(sender), contract, code)
                 .then(function (result) {
                     resolve(result);
@@ -66,7 +66,7 @@ class LockerModel {
                 .catch(function (error) {
                     reject(error);
                 });
-                
+
             }).catch(function (error) {
                 reject(error);
             });
@@ -74,7 +74,7 @@ class LockerModel {
         });
 
     }
-    
+
     /**
      * Returns .
      * @public
@@ -90,15 +90,15 @@ class LockerModel {
         const ethHelp = this.ethHelper;
 
         return new Promise(function (resolve, reject) {
-             
+
             return ethHelp.util.status().then(function(result){
-                
+
                 ethHelp.account.default(sender);
 
                 var mSig = ethHelp.util.sig('unlock()'),
                     mVal = '0000000000000000000000000000000000000000000000000000000000000000',
                     code = mSig + mVal;
-  
+
                 ethHelp.trx.send(ethHelp.account.get(sender), contract, code)
                 .then(function (result) {
                     resolve(result);
@@ -106,7 +106,7 @@ class LockerModel {
                 .catch(function (error) {
                     reject(error);
                 });
-                
+
             }).catch(function (error) {
                 reject(error);
             });
@@ -114,7 +114,7 @@ class LockerModel {
         });
 
     }
-    
+
     /**
      * Returns .
      * @public
@@ -129,9 +129,9 @@ class LockerModel {
         var compiled,
             abi,
             ethHelp = this.ethHelper;
-            
+
         return new Promise(function (resolve, reject) {
-            
+
             ethHelp.util.getContractOrAbi(name)
             .then(function (result) {
                 return ethHelp.util.compile(result);
@@ -145,20 +145,20 @@ class LockerModel {
             .then(function (result) {
                 var code = compiled.code;
                 // create contract
-                return ethHelp.contract.new(name,code,abi,0,waitUntilMined);
-                
+                return ethHelp.contract.new(name,code,abi,10,waitUntilMined);
+
             })
             .then(function (result) {
-                
+
                 resolve(result);
-  
+
             })
             .catch(function (error) {
                 reject(error);
             });
-        
+
         });
-    
+
 }
 
 
