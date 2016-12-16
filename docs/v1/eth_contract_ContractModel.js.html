@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
 	<title>EthInt Api Source: eth/contract/ContractModel.js</title>
 
 	<!--[if lt IE 9]>
@@ -47,21 +48,23 @@
 			<li class="dropdown">
 				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="module-account-AccountModel.html">account~AccountModel</a></li><li><a href="module-account-AccountService.html">account~AccountService</a></li><li><a href="module-contract-ContractModel.html">contract~ContractModel</a></li><li><a href="module-contract-ContractService.html">contract~ContractService</a></li><li><a href="module-transaction-TransactionModel.html">transaction~TransactionModel</a></li><li><a href="module-transaction-TransactionService.html">transaction~TransactionService</a></li><li><a href="Response.html">Response</a></li><li><a href="ServerExceptions.html">ServerExceptions</a></li><li><a href="ServerSetup.html">ServerSetup</a></li>
+					<li><a href="module-account-AccountModel.html">account~AccountModel</a></li><li><a href="module-account-AccountService.html">account~AccountService</a></li><li><a href="module-contract-ContractModel.html">contract~ContractModel</a></li><li><a href="module-contract-ContractService.html">contract~ContractService</a></li><li><a href="module-contract-LockerModel.html">contract~LockerModel</a></li><li><a href="module-contract-LockerService.html">contract~LockerService</a></li><li><a href="module-transaction-TransactionModel.html">transaction~TransactionModel</a></li><li><a href="module-transaction-TransactionService.html">transaction~TransactionService</a></li><li><a href="Response.html">Response</a></li><li><a href="ServerExceptions.html">ServerExceptions</a></li><li><a href="ServerSetup.html">ServerSetup</a></li>
 				</ul>
 			</li>
 			
 		</ul>
-		<div class="col-sm-3 col-md-3">
-            <form class="navbar-form" role="search">
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
-                    <div class="input-group-btn">
-                        <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
                     </div>
-                </div>
-            </form>
-        </div>
+                </form>
+            </div>
+        
 	</div>
 
 </div>
@@ -149,7 +152,7 @@ class ContractModel {
                     // Check
                     ethHelp.contract.saveAbi(contract,abi);
                     // create contract
-                    return ethHelp.contract.new(contract,compiled.code,abi,'0xe24591bb87d2e7edc97c340221c85b1c03ca33e8',wait);
+                    return ethHelp.contract.new(contract,compiled.code,abi,'0xaf263b8b9ce09c5b8ac2abe56a2023f08e55fd97',wait);
                 })
                 .then(function (result) {
                     resolve(result);
@@ -218,7 +221,7 @@ class ContractModel {
      * @custom public
      * @returns {Promise} Returns a new promise with the contract detail.
      */
-    sendTransaction (contract,sender,wait) {
+    sendTransaction (contract,from,data,method) {
 
         const ethHelp = this.ethHelper;
 
@@ -226,7 +229,7 @@ class ContractModel {
 
             ethHelp.util.status().then(function(result){
 
-                ethHelp.trx.send(contract)
+                ethHelp.contract.call(contract,from,data,method)
                 .then(function (result) {
                     resolve(result);
                 })
@@ -263,20 +266,22 @@ module.exports = ContractModel;
 </div>
 </div>
 
-<div class="modal fade" id="searchResults">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title">Search results</h4>
-      </div>
-      <div class="modal-body"></div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div>
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
 
 <footer>
 
@@ -286,9 +291,9 @@ module.exports = ContractModel;
 	</span>
 
 <span class="jsdoc-message">
-	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a>
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a>
 	
-		on Wed Feb 10th 2016
+		on Fri Dec 16th 2016
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>
@@ -296,7 +301,9 @@ module.exports = ContractModel;
 
 <script src="scripts/docstrap.lib.js"></script>
 <script src="scripts/toc.js"></script>
-<script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
 
 <script>
 $( function () {
@@ -306,7 +313,7 @@ $( function () {
 		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
 	} );
 
-	$( ".tutorial-section pre, .readme-section pre" ).each( function () {
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
 		var $this = $( this );
 
 		var example = $this.find( "code" );
@@ -342,8 +349,7 @@ $( function () {
 	} );
 	$( "#toc" ).toc( {
 		anchorName  : function ( i, heading, prefix ) {
-			var id = $( heading ).attr( "id" );
-			return id && id.replace(/\~/g, '-inner-').replace(/\./g, '-static-') || ( prefix + i );
+			return $( heading ).attr( "id" ) || ( prefix + i );
 		},
 		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
 		showAndHide : false,
@@ -404,11 +410,13 @@ $( function () {
 <!--Google Analytics-->
 
 
-<script type="text/javascript">
-	$(document).ready(function() {
-		SearcherDisplay.init();
-	});
-</script>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
 
 </body>
 </html>

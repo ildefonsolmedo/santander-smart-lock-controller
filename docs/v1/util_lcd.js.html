@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>EthInt Api Source: util/lcd.js</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.simplex.css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top navbar-inverse">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html"><img class="branding-logo" src="../img/logo.png"
+		alt="logo"/>EthInt Api</a>
+		<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#topNavigation">
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+        </button>
+	</div>
+	<div class="navbar-collapse collapse" id="topNavigation">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="namespaces.list.html" class="dropdown-toggle" data-toggle="dropdown">Namespaces<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="eth.html">eth</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-account.html">account</a></li><li><a href="module-contract.html">contract</a></li><li><a href="module-transaction.html">transaction</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-account-AccountModel.html">account~AccountModel</a></li><li><a href="module-account-AccountService.html">account~AccountService</a></li><li><a href="module-contract-ContractModel.html">contract~ContractModel</a></li><li><a href="module-contract-ContractService.html">contract~ContractService</a></li><li><a href="module-contract-LockerModel.html">contract~LockerModel</a></li><li><a href="module-contract-LockerService.html">contract~LockerService</a></li><li><a href="module-transaction-TransactionModel.html">transaction~TransactionModel</a></li><li><a href="module-transaction-TransactionService.html">transaction~TransactionService</a></li><li><a href="Response.html">Response</a></li><li><a href="ServerExceptions.html">ServerExceptions</a></li><li><a href="ServerSetup.html">ServerSetup</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        
+	</div>
+
+</div>
+</div>
+
+
+<div class="container" id="toc-content">
+<div class="row">
+
+	
+	<div class="col-md-12">
+	
+		<div id="main">
+			
+
+		<h1 class="page-title">Source: util/lcd.js</h1>
+    
+<section>
+    <article>
+        <pre
+            class="sunlight-highlight-javascript linenums">var i2c = require('i2c');
+var sleep = require('sleep');
+
+// LCD i2c interface via PCF8574P
+// http://dx.com/p/lcd1602-adapter-board-w-iic-i2c-interface-black-works-with-official-arduino-boards-216865
+
+// https://gist.github.com/chrisnew/6725633
+// http://www.espruino.com/HD44780
+// http://www.espruino.com/LCD1602
+var displayPorts = {
+	RS : 0x01,
+	E : 0x04,
+	D4 : 0x10,
+	D5 : 0x20,
+	D6 : 0x40,
+	D7 : 0x80,
+
+	CHR : 1,
+	CMD : 0,
+
+	backlight : 0x08,
+	RW : 0x20 // not used
+};
+
+var LCD = function (device, address) {
+	this.i2c = new i2c(address, {
+			device : device
+		});
+
+	this.write4(0x30, displayPorts.CMD); //initialization
+	this._sleep(200);
+	this.write4(0x30, displayPorts.CMD); //initialization
+	this._sleep(100);
+	this.write4(0x30, displayPorts.CMD); //initialization
+	this._sleep(100);
+	this.write4( LCD.FUNCTIONSET | LCD._4BITMODE | LCD._2LINE | LCD._5x10DOTS, displayPorts.CMD); //4 bit - 2 line 5x7 matrix
+	
+	this._sleep(10);
+	this.write(LCD.DISPLAYCONTROL | LCD.DISPLAYON, displayPorts.CMD); //turn cursor off 0x0E to enable cursor
+	this._sleep(10);
+	this.write(LCD.ENTRYMODESET | LCD.ENTRYLEFT, displayPorts.CMD); //shift cursor right
+	this._sleep(10);
+	this.write(LCD.CLEARDISPLAY, displayPorts.CMD); // LCD clear
+	return this;
+}
+
+// commands
+LCD.CLEARDISPLAY = 0x01;
+LCD.RETURNHOME = 0x02;
+LCD.ENTRYMODESET = 0x04;
+LCD.DISPLAYCONTROL = 0x08;
+LCD.CURSORSHIFT = 0x10;
+LCD.FUNCTIONSET = 0x20;
+LCD.SETCGRAMADDR = 0x40;
+LCD.SETDDRAMADDR = 0x80;
+
+//# flags for display entry mode
+LCD.ENTRYRIGHT = 0x00;
+LCD.ENTRYLEFT = 0x02;
+LCD.ENTRYSHIFTINCREMENT = 0x01;
+LCD.ENTRYSHIFTDECREMENT = 0x00;
+
+//# flags for display on/off control
+LCD.DISPLAYON = 0x04;
+LCD.DISPLAYOFF = 0x00;
+LCD.CURSORON = 0x02;
+LCD.CURSOROFF = 0x00;
+LCD.BLINKON = 0x01;
+LCD.BLINKOFF = 0x00;
+
+//# flags for display/cursor shift
+LCD.DISPLAYMOVE = 0x08;
+LCD.CURSORMOVE = 0x00;
+LCD.MOVERIGHT = 0x04;
+LCD.MOVELEFT = 0x00;
+
+//# flags for function set
+LCD._8BITMODE = 0x10;
+LCD._4BITMODE = 0x00;
+LCD._2LINE = 0x08;
+LCD._1LINE = 0x00;
+LCD._5x10DOTS = 0x04;
+LCD._5x8DOTS = 0x00;
+
+LCD.prototype._sleep = function (milli) {
+	sleep.usleep(milli * 1000);
+};
+
+LCD.prototype.write4 = function (x, c) {
+	function err() {};
+	var a = (x &amp; 0xF0); // Use upper 4 bit nibble
+	this.i2c.writeByte(a | displayPorts.backlight | c, err);
+	this.i2c.writeByte(a | displayPorts.E | displayPorts.backlight | c, err);
+	this.i2c.writeByte(a | displayPorts.backlight | c, err);
+	this._sleep(1);
+}
+
+LCD.prototype.write = function (x, c) {
+	this.write4(x, c);
+	this.write4(x &lt;&lt; 4, c);
+	this._sleep(1);
+	return this;
+}
+
+LCD.prototype.clear = function () {
+	return this.write(LCD.CLEARDISPLAY, displayPorts.CMD);
+}
+
+LCD.prototype.print = function (str) {
+	if (typeof str == 'string') {
+		for (var i = 0; i &lt; str.length; i++) {
+			var c = str[i].charCodeAt(0);
+			this.write(c, displayPorts.CHR);
+			this._sleep(1);
+		}
+	}
+	return this;
+}
+/** flashing block for the current cursor */
+LCD.prototype.cursorFull = function () {
+	return this.write(LCD.DISPLAYCONTROL | LCD.DISPLAYON | LCD.CURSORON | LCD.BLINKON, displayPorts.CMD);
+}
+/** small line under the current cursor */
+LCD.prototype.cursorUnder = function () {
+	return this.write(LCD.DISPLAYCONTROL |  LCD.DISPLAYON | LCD.CURSORON | LCD.BLINKOFF, displayPorts.CMD);
+}
+/** set cursor pos, top left = 0,0 */
+LCD.prototype.setCursor = function (x, y) {
+	var l = [0x00, 0x40, 0x14, 0x54];
+	return this.write(LCD.SETDDRAMADDR | (l[y] + x), displayPorts.CMD);
+}
+/** set cursor to 0,0 */
+LCD.prototype.home = function () {
+	var l = [0x00, 0x40, 0x14, 0x54];
+	return this.write(LCD.SETDDRAMADDR | 0x00, displayPorts.CMD);
+}
+/** Turn underline cursor off */
+LCD.prototype.blinkOff = function () {
+	return this.write( LCD.DISPLAYCONTROL | LCD.DISPLAYON | LCD.CURSOROFF | LCD.BLINKOFF, displayPorts.CMD);
+}
+/** Turn underline cursor on */
+LCD.prototype.blinkOn = function () {
+	return this.write( LCD.DISPLAYCONTROL | LCD.DISPLAYON | LCD.CURSORON | LCD.BLINKOFF, displayPorts.CMD);
+}
+/** Turn block cursor off */
+LCD.prototype.cursorOff = function () {
+	return this.write( LCD.DISPLAYCONTROL | LCD.DISPLAYON | LCD.CURSOROFF | LCD.BLINKON, displayPorts.CMD);
+}
+/** Turn block cursor on */
+LCD.prototype.cursorOn = function () {
+	return this.write( LCD.DISPLAYCONTROL | LCD.DISPLAYON | LCD.CURSORON | LCD.BLINKON, displayPorts.CMD);
+}
+/** setBacklight */
+LCD.prototype.setBacklight = function (val) {
+	if (val > 0) {
+		displayPorts.backlight = 0x08;
+	} else {
+		displayPorts.backlight = 0x00;
+	}
+	return this.write(LCD.DISPLAYCONTROL, displayPorts.CMD);
+}
+/** setContrast stub */
+LCD.prototype.setContrast = function (val) {
+	return this.write(LCD.DISPLAYCONTROL, displayPorts.CMD);
+}
+/** Turn display off */
+LCD.prototype.off = function () {
+	displayPorts.backlight = 0x00;
+	return this.write(LCD.DISPLAYCONTROL | LCD.DISPLAYOFF, displayPorts.CMD);
+}
+/** Turn display on */
+LCD.prototype.on = function () {
+	displayPorts.backlight = 0x08;
+	return this.write(LCD.DISPLAYCONTROL | LCD.DISPLAYON, displayPorts.CMD);
+}
+/** set special character 0..7, data is an array(8) of bytes, and then return to home addr */
+LCD.prototype.createChar = function (ch, data) {
+	this.write(LCD.SETCGRAMADDR | ((ch &amp; 7) &lt;&lt; 3), displayPorts.CMD);
+	for (var i = 0; i &lt; 8; i++)
+		this.write(data[i], displayPorts.CHR);
+	return this.write(LCD.SETDDRAMADDR, displayPorts.CMD);
+}
+
+module.exports = LCD;</pre>
+    </article>
+</section>
+
+
+
+
+
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+
+</div>
+</div>
+
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
+
+<footer>
+
+
+	<span class="copyright">
+	Javi Romero © 2016
+	</span>
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a>
+	
+		on Fri Dec 16th 2016
+	
+	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
+</span>
+</footer>
+
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/toc.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			var langClassMatch = example.parent()[0].className.match(/lang\-(\S+)/);
+			lang = langClassMatch ? langClassMatch[1] : "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : true,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+
+	$.catchAnchorLinks( {
+        navbarOffset: 10
+	} );
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			return $( heading ).attr( "id" ) || ( prefix + i );
+		},
+		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
+		showAndHide : false,
+		smoothScrolling: true
+	} );
+
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+
+    $( "table" ).each( function () {
+      var $this = $( this );
+      $this.addClass('table');
+    } );
+
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+<script>
+	$( function () {
+		$( '#main' ).localScroll( {
+			offset : { top : 60 } //offset by the height of your header (give or take a few px, see what works for you)
+		} );
+		$( "dt.name" ).each( function () {
+			var $this = $( this ).find("h4");
+			var icon = $( "<i/>" ).addClass( "icon-plus-sign" ).addClass( "pull-right" ).addClass( "icon-white" );
+			var dt = $(this);
+			var children = dt.next( "dd" );
+
+			dt.prepend( icon ).css( {cursor : "pointer"} );
+			dt.addClass( "member-collapsed" ).addClass( "member" );
+
+
+			children.hide();
+
+			dt.children().on( "click", function () {
+				children = dt.next( "dd" );
+				children.slideToggle( "fast", function () {
+
+					if ( children.is( ":visible" ) ) {
+						icon.addClass( "icon-minus-sign" ).removeClass( "icon-plus-sign" ).removeClass( "icon-white" );
+						dt.addClass( "member-open" ).animate( "member-collapsed" );
+					} else {
+						icon.addClass( "icon-plus-sign" ).removeClass( "icon-minus-sign" ).addClass( "icon-white" );
+						dt.addClass( "member-collapsed" ).removeClass( "member-open" );
+					}
+				} );
+			} );
+
+		} );
+	} );
+</script>
+
+
+<!--Google Analytics-->
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
+
+</body>
+</html>

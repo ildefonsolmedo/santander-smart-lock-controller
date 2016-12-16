@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
 	<title>EthInt Api Source: eth/contract/ContractService.js</title>
 
 	<!--[if lt IE 9]>
@@ -47,21 +48,23 @@
 			<li class="dropdown">
 				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="module-account-AccountModel.html">account~AccountModel</a></li><li><a href="module-account-AccountService.html">account~AccountService</a></li><li><a href="module-contract-ContractModel.html">contract~ContractModel</a></li><li><a href="module-contract-ContractService.html">contract~ContractService</a></li><li><a href="module-transaction-TransactionModel.html">transaction~TransactionModel</a></li><li><a href="module-transaction-TransactionService.html">transaction~TransactionService</a></li><li><a href="Response.html">Response</a></li><li><a href="ServerExceptions.html">ServerExceptions</a></li><li><a href="ServerSetup.html">ServerSetup</a></li>
+					<li><a href="module-account-AccountModel.html">account~AccountModel</a></li><li><a href="module-account-AccountService.html">account~AccountService</a></li><li><a href="module-contract-ContractModel.html">contract~ContractModel</a></li><li><a href="module-contract-ContractService.html">contract~ContractService</a></li><li><a href="module-contract-LockerModel.html">contract~LockerModel</a></li><li><a href="module-contract-LockerService.html">contract~LockerService</a></li><li><a href="module-transaction-TransactionModel.html">transaction~TransactionModel</a></li><li><a href="module-transaction-TransactionService.html">transaction~TransactionService</a></li><li><a href="Response.html">Response</a></li><li><a href="ServerExceptions.html">ServerExceptions</a></li><li><a href="ServerSetup.html">ServerSetup</a></li>
 				</ul>
 			</li>
 			
 		</ul>
-		<div class="col-sm-3 col-md-3">
-            <form class="navbar-form" role="search">
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
-                    <div class="input-group-btn">
-                        <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
                     </div>
-                </div>
-            </form>
-        </div>
+                </form>
+            </div>
+        
 	</div>
 
 </div>
@@ -161,65 +164,37 @@ class ContractService {
      * @param {string} value Number of coins to transfer.
      * @custom public 
      */
-    contractCall(contractAddress,fromAddress,receiverAddress,value,waitUntilMined) {
+    contractCall(contract,from,data,wait,local,method) {
 
         let itself = this;
-        return new Promise(function (resolve, reject) {
 
-        var validator = new Validator({ contract : contract,  wait: wait});
+        const validator = new Validator({ from: from, wait : wait,  contract: contract, method: method, data: data, local: local });
 
         validator.path('contract', ['string', 'required']);
-        validator.path('wait', ['boolean', 'required']);
+        validator.path('method', ['string', 'required']);
+        validator.path('data', ['required']);
+        validator.path('wait', ['boolean','required']);
+        validator.path('local', ['boolean','required']);
 
-        if (validator.hasErrors()) {
-          let vErrors = validator.getErrors();
-          reject(new Exceptions.Validation(vErrors) );
-          return;
-        } else {
-          return itself.model.deployContract(contract,sender,wait)
-              .then(function(response){
-                resolve(response);
-              },function(err){
-                reject(err);
-              })
-              .catch(function(err){
-                reject(err);
-              });
+        return new Promise(function (resolve, reject) {
 
-        }
-        });
+            if (validator.hasErrors()) {
+              let vErrors = validator.getErrors();
+              reject(new Exceptions.Validation(vErrors) );
+              return;
+            } else {
+              return itself.model.sendTransaction(contract,from,data,wait,local,method)
+                  .then(function(response){
+                    resolve(response);
+                  },function(err){
+                    reject(err);
+                  })
+                  .catch(function(err){
+                    reject(err);
+                  });
 
-        // XXXXXXXXXXXXXXX
-
-        var deferred = Q.defer();
-
-        utilSrv.getContractOrAbi('IsbanCoin.sol.abi')
-        .then(function (result) {
-            var abi = JSON.parse(result),
-                contractInstance = web3.eth.contract(abi),
-                isbanCoinContract = contractInstance.at(contractAddress),
-                primaryAddress = web3.eth.accounts[0];
-
-            console.log('send coins, value: ' + value + ', from: ' + fromAddress + ' to ' + receiverAddress);
-            // send a transaction to a function
-            isbanCoinContract.sendRed(fromAddress,receiverAddress, value, {
-                from: primaryAddress,
-                gas: cfg.contractGas
-            }, function (err, result) {
-                console.log('result send coins',result);
-                if(err) {
-                    deferred.reject(err);
-                } else {
-                    deferred.resolve(result);
-                    dbSrv.addLog('sendcoinsred',value + ' red coins','eth',fromAddress,receiverAddress,contractAddress,result,value); 
-                }
+            }
             });
-        })
-        .fail(function (error) {
-            deferred.reject(error);
-        });
-
-        return deferred.promise;
         
     }
     
@@ -244,20 +219,22 @@ module.exports = ContractService;
 </div>
 </div>
 
-<div class="modal fade" id="searchResults">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title">Search results</h4>
-      </div>
-      <div class="modal-body"></div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div>
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
 
 <footer>
 
@@ -267,9 +244,9 @@ module.exports = ContractService;
 	</span>
 
 <span class="jsdoc-message">
-	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a>
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a>
 	
-		on Wed Feb 10th 2016
+		on Fri Dec 16th 2016
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>
@@ -277,7 +254,9 @@ module.exports = ContractService;
 
 <script src="scripts/docstrap.lib.js"></script>
 <script src="scripts/toc.js"></script>
-<script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
 
 <script>
 $( function () {
@@ -287,7 +266,7 @@ $( function () {
 		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
 	} );
 
-	$( ".tutorial-section pre, .readme-section pre" ).each( function () {
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
 		var $this = $( this );
 
 		var example = $this.find( "code" );
@@ -323,8 +302,7 @@ $( function () {
 	} );
 	$( "#toc" ).toc( {
 		anchorName  : function ( i, heading, prefix ) {
-			var id = $( heading ).attr( "id" );
-			return id && id.replace(/\~/g, '-inner-').replace(/\./g, '-static-') || ( prefix + i );
+			return $( heading ).attr( "id" ) || ( prefix + i );
 		},
 		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
 		showAndHide : false,
@@ -385,11 +363,13 @@ $( function () {
 <!--Google Analytics-->
 
 
-<script type="text/javascript">
-	$(document).ready(function() {
-		SearcherDisplay.init();
-	});
-</script>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
 
 </body>
 </html>

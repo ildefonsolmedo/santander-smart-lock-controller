@@ -54,9 +54,9 @@
     "routers": [
         "eth"
     ],
-    
+
     "eth": {
-        "contract": "0x3f0ced70bf161da182990b3f88311ca22df65b6a",
+        "contract": "0xc337440ba35301462459ec970457db2841dd39cb",
         "sender": 0,
         "default": 0
     },

@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
 	<title>EthInt Api Index</title>
 
 	<!--[if lt IE 9]>
@@ -47,21 +48,23 @@
 			<li class="dropdown">
 				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="module-account-AccountModel.html">account~AccountModel</a></li><li><a href="module-account-AccountService.html">account~AccountService</a></li><li><a href="module-contract-ContractModel.html">contract~ContractModel</a></li><li><a href="module-contract-ContractService.html">contract~ContractService</a></li><li><a href="module-transaction-TransactionModel.html">transaction~TransactionModel</a></li><li><a href="module-transaction-TransactionService.html">transaction~TransactionService</a></li><li><a href="Response.html">Response</a></li><li><a href="ServerExceptions.html">ServerExceptions</a></li><li><a href="ServerSetup.html">ServerSetup</a></li>
+					<li><a href="module-account-AccountModel.html">account~AccountModel</a></li><li><a href="module-account-AccountService.html">account~AccountService</a></li><li><a href="module-contract-ContractModel.html">contract~ContractModel</a></li><li><a href="module-contract-ContractService.html">contract~ContractService</a></li><li><a href="module-contract-LockerModel.html">contract~LockerModel</a></li><li><a href="module-contract-LockerService.html">contract~LockerService</a></li><li><a href="module-transaction-TransactionModel.html">transaction~TransactionModel</a></li><li><a href="module-transaction-TransactionService.html">transaction~TransactionService</a></li><li><a href="Response.html">Response</a></li><li><a href="ServerExceptions.html">ServerExceptions</a></li><li><a href="ServerSetup.html">ServerSetup</a></li>
 				</ul>
 			</li>
 			
 		</ul>
-		<div class="col-sm-3 col-md-3">
-            <form class="navbar-form" role="search">
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
-                    <div class="input-group-btn">
-                        <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
                     </div>
-                </div>
-            </form>
-        </div>
+                </form>
+            </div>
+        
 	</div>
 
 </div>
@@ -146,7 +149,61 @@ nodemon
 #local UI development
 npm start
 
-#Audit can be enabled by changing default value for &quot;audit&quot; in configuration files</code></pre></article>
+#Audit can be enabled by changing default value for &quot;audit&quot; in configuration files</code></pre><h2>Creating a new node in private network</h2><ol>
+<li><p>Create a folder and place a <code>genesis.json</code> inside it containing the following:</p>
+<pre class="prettyprint source"><code>{
+ &quot;nonce&quot;: &quot;0x0000000000000042&quot;,
+ &quot;timestamp&quot;: &quot;0x0&quot;,
+ &quot;parentHash&quot;: &quot;0x0000000000000000000000000000000000000000000000000000000000000000&quot;,
+ &quot;extraData&quot;: &quot;0x0&quot;,
+ &quot;gasLimit&quot;: &quot;0x8000000&quot;,
+ &quot;difficulty&quot;: &quot;0x400&quot;,
+ &quot;mixhash&quot;: &quot;0x0000000000000000000000000000000000000000000000000000000000000000&quot;,
+ &quot;coinbase&quot;: &quot;0x3333333333333333333333333333333333333333&quot;,
+ &quot;alloc&quot;: {
+ }
+}</code></pre></li>
+<li><p>Run <code>geth --datadir &lt;created folder&gt; init &lt;created folder&gt;/genesis.json</code>. This will create a <code>chaindata</code> folder.</p>
+</li>
+<li><p>Create a new account with <code>geth --datadir &lt;created folder&gt; account new</code>. You can issue this command as much times as accounts are needed. For the needs of the PoC the accounts needn't have passwords. Created accounts can be listed using <code>geth --datadir &lt;created folder&gt; account list</code>.</p>
+</li>
+<li><p>Start the node using<br><code>geth --datadir &lt;created folder&gt; --networkid 123 --ipcpath &lt;created folder&gt;/geth.ipc --nodiscover --solc solc --rpc --rpccorsdomain &quot;*&quot; --unlock 0,1 console</code>. If it's a mining node <code>--mine --minerthreads 2</code> can be appended. If you need to run multiple nodes on the same machine they should have different discovery and RPC ports. This is done by appending <code>--port 30304 --rpcport 8546</code> to the above command.</p>
+</li>
+<li><p>Set up node discovery</p>
+</li>
+</ol>
+<p>In order for a node to connect to others in our network, we need to setup a <code>static-nodes.json</code> file in the working directory. Get all of the nodes ID URIs by issuing the <code>admin.nodeInfo.enode</code> command in each node's console. Then add the node URIs of the particular nodes that you'd like your node to connect to as strings in an array:</p>
+<pre class="prettyprint source"><code>[
+    &quot;enode://be03340ed41e08f0387f5f4b5418eae6b890d56685c397b4ece438b2de346d41e6aa885594336f079d56199864391d11a81fb4fbf819dde2cfecf100e016acc6@10.42.0.108:30303&quot;,
+    &quot;enode://648685ddaf45bc6799a30114c1402884e64c503ec04792e2fb9de05aee4f8b1de6fe62253ccea39088ed0090573fb69ff6fb2fce2ec22b5b80e5d25fa812ede9@127.0.0.1:30304&quot;
+]</code></pre><h2>Ethereum node details</h2><h3>Stefan-Laptop miner 1</h3><h4>Command to start it</h4><h4>Node URI</h4><p><code>enode://583bd7834f8a27b8bb213c6bfc413fc08c350b55dc882c27e090364044b11b3d4c2effbaa10ab0d6edd6e0676dcfee5022bace095dd45dc2426c4d3089c30649@10.42.0.165:30303</code></p>
+<h4>Accounts</h4><ul>
+<li><code>0x40ead8d2363fbad416ee0f156a922dcad52ce321</code> (etherbase)</li>
+<li><code>0x0351b5f592c5cf37bb277a9d55e97ffacd08b990</code></li>
+<li><code>0x4fe5a35c4cf3d09dc7cf9eb311d9e315b6ef8812</code></li>
+</ul>
+<h3>Stefan-Laptop miner 2</h3><h4>Node URI</h4><p><code>enode://188b5c92fde85f22e7e18af703d4976d4024ceeeeb61f50e1a2ec09cf4adff622ba8591866d741b22c7e472bba7ae8e6007df854bbd6186ec83f05c6bafd5a06@10.42.0.165:30304</code></p>
+<h4>Accounts</h4><ul>
+<li><code>0x0491615b945056a0a2015ca5678971628fa00fbe</code> (etherbase)</li>
+</ul>
+<h3>Smart locker non-miner</h3><h4>Node URI</h4><p><code>enode://be03340ed41e08f0387f5f4b5418eae6b890d56685c397b4ece438b2de346d41e6aa885594336f079d56199864391d11a81fb4fbf819dde2cfecf100e016acc6@10.42.0.108:30303</code></p>
+<h4>Accounts</h4><ul>
+<li><code>0xf521e52133f9668b2fb22a8778452e82c34595bd</code></li>
+<li><code>0x459a7db5b046455817750cdb5be67b081ed6e33d</code></li>
+</ul>
+<h3>Contract creation log</h3><pre class="prettyprint source"><code>Running migration: 1_initial_migration.js
+  Deploying Migrations...
+  Migrations: 0x7193bbb44a148ec2760243ebe151ac4831814a4e
+Saving successful migration to network...
+Saving artifacts...
+Running migration: 2_deploy_contracts.js
+  Deploying BlockDatesLib...
+  BlockDatesLib: 0xdea5c1ba932812025067684f6236fdbce243f64a
+  Linking BlockDatesLib to Lock
+  Deploying Lock...
+  Lock: 0x3bfe60eb4bbf455f564a70d74c9a40dc3e11566d
+Saving successful migration to network...
+Saving artifacts...</code></pre></article>
     </section>
 
 
@@ -169,20 +226,22 @@ npm start
 </div>
 </div>
 
-<div class="modal fade" id="searchResults">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title">Search results</h4>
-      </div>
-      <div class="modal-body"></div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div>
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
 
 <footer>
 
@@ -192,9 +251,9 @@ npm start
 	</span>
 
 <span class="jsdoc-message">
-	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a>
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a>
 	
-		on Wed Feb 10th 2016
+		on Fri Dec 16th 2016
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>
@@ -202,7 +261,9 @@ npm start
 
 <script src="scripts/docstrap.lib.js"></script>
 <script src="scripts/toc.js"></script>
-<script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
 
 <script>
 $( function () {
@@ -212,7 +273,7 @@ $( function () {
 		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
 	} );
 
-	$( ".tutorial-section pre, .readme-section pre" ).each( function () {
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
 		var $this = $( this );
 
 		var example = $this.find( "code" );
@@ -248,8 +309,7 @@ $( function () {
 	} );
 	$( "#toc" ).toc( {
 		anchorName  : function ( i, heading, prefix ) {
-			var id = $( heading ).attr( "id" );
-			return id && id.replace(/\~/g, '-inner-').replace(/\./g, '-static-') || ( prefix + i );
+			return $( heading ).attr( "id" ) || ( prefix + i );
 		},
 		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
 		showAndHide : false,
@@ -310,11 +370,13 @@ $( function () {
 <!--Google Analytics-->
 
 
-<script type="text/javascript">
-	$(document).ready(function() {
-		SearcherDisplay.init();
-	});
-</script>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
 
 </body>
 </html>

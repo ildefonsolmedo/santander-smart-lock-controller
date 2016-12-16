@@ -11,8 +11,8 @@ var config = require('config'),
 
 //Hardware-related settings
 const DEFAULT_TITLE = 'Smart Locker',
-	SECONDS_TO_LOCK = 3,
-	INTERNAL_TIMER_HAS_PRIORITY = true;
+	SECONDS_TO_LOCK = 10,
+	COOLOFF_SECONDS = 120;
 
 console.log('Configuration environment: ' + config.util.getEnv('NODE_ENV'));
 console.log('Configuration instance: ' + config.util.getEnv('NODE_APP_INSTANCE'));
@@ -39,6 +39,9 @@ catalog.ready().then(function (catalog) {
 
 // Holds the lock's state
 let isUnlocked = false;
+
+// Stops the lock from re-unlocking if an unlocked state has been re-read from the same unlocking event in the Ethereum network.
+let hasCooledOff = true;
 
 function startLocker() {
 	var locker = catalog('lockerService'),
@@ -73,50 +76,49 @@ function startLocker() {
 			});
 
 			setInterval(function() {
-				/*
-				// Dummy implementation
-				let result = (Math.random() >= 0.95);
-
-				console.log('interval -----------------' + result);
-
-				if (result) {
-						my.doUnlock(my);
-				} else if (isUnlocked && !INTERNAL_TIMER_HAS_PRIORITY) {
-						my.doLock(my);
-				}
-				*/
-
-				// Actual implementation
+				console.log('\nCheck blockchain for lock status:');
 				locker.status(config.eth.contract, config.eth.sender)
 					.then(
-						function(response){
-							console.log('status',response);
+						function (response){
+							console.log('Lock status: ', response);
 
-							resolve(response);
+							//resolve(response);
 
-							if (response) {
+							if (response === '0x0000000000000000000000000000000000000000000000000000000000000001' && !isUnlocked && hasCooledOff) {
+								hasCooledOff = false;
+								after((COOLOFF_SECONDS).seconds(), function() {
+									hasCooledOff = true;
+								});
 								my.doUnlock(my);
-							} else {
-								my.doLock(my);
+							} else if (response === '0x0000000000000000000000000000000000000000000000000000000000000000' && isUnlocked) {
+								// This line should be enabled if licking from the contract is needed. As the lock os performed using an internal timer, this is not currently needed.
+								// my.doLock(my);
 							}
 						},
-						function(err){
+						function (err) {
 							console.log(err);
 						}
 					)
-					.catch(function(err){
+					.catch(function (err) {
 						console.log(err);
 					});
-			}, 1000);
+			}, 1500);
+
+			my.displayTitleMessage(my);
 
 			//Go into standby mode
-			my.standbyState(my);
+			after((6).seconds(), function() {
+				my.standbyState(my);
+			});
 
 			my.bleAdvertise(my);
 		},
 
 		standbyState: function (my) {
 			oldIp = getIpAddress(os);
+
+			my.displayDefaultMessage(config.eth.contract.substr(0, 6) + '...' + config.eth.contract.substr(config.eth.contract.length - 7));
+			/*
 			my.displayDefaultMessage(oldIp);
 			every((5).seconds(), function () {
 				var newIp = getIpAddress(os);
@@ -124,6 +126,25 @@ function startLocker() {
 					oldIp = newIp;
 					my.displayDefaultMessage(newIp);
 				}
+			});
+			*/
+		},
+
+		displayTitleMessage: function (ipAddress) {
+			lcd.clear()
+				.setCursor(0,0).print('A PoC by Javier')
+				.setCursor(0,1).print('Romero');
+
+			after((2).seconds(), function() {
+				lcd.clear()
+					.setCursor(0,0).print('and Stefan')
+					.setCursor(0,1).print('Blaginov');
+			});
+
+			after((4).seconds(), function() {
+				lcd.clear()
+					.setCursor(0,0).print('Isban UK')
+					.setCursor(0,1).print('Solutioning');
 			});
 		},
 
@@ -140,8 +161,8 @@ function startLocker() {
 			lcd.clear().print('Unlocked.');
 			console.log('Unlocked.');
 
-			var seconds = SECONDS_TO_LOCK;
-			var lockingInterval = setInterval(function () {
+			let seconds = SECONDS_TO_LOCK;
+			let lockingInterval = setInterval(function () {
 				if (seconds < 1) {
 					my.doLock(my);
 					clearInterval(lockingInterval);
@@ -159,7 +180,9 @@ function startLocker() {
 			isUnlocked = false;
 			lcd.clear().print('Locked.');
 			console.log('Locked.');
-			my.standbyState(my);
+			after((1).seconds(), function() {
+				my.standbyState(my);
+			});
 		},
 
 		bleAdvertise: function (my) {
@@ -178,10 +201,37 @@ function startLocker() {
 				descriptors: [],
 				onReadRequest: null,
 				onWriteRequest: function (data, offset, withoutResponse, callback) {
-					console.log(data.toString());
-					console.log(offset.toString());
-					console.log(withoutResponse.toString());
-					lcd.clear().print(data.toString());
+					let dataFromPhone = data.toString();
+
+					console.log('Data: ' + dataFromPhone);
+					console.log('Offset: ' + offset.toString());
+					console.log('Without response: ' + withoutResponse.toString());
+
+					if (dataFromPhone == '0' || dataFromPhone == '1') {
+						locker.unlock(config.eth.contract, dataFromPhone)
+							.then(
+								function (response){
+									console.log('\nSigning status: ', response);
+								},
+								function (err) {
+									console.log(err);
+								}
+							)
+							.catch(function (err) {
+								console.log(err);
+							});
+
+						console.log('\nPhone unlock from user ' + dataFromPhone + '.');
+						lcd.clear()
+							.setCursor(0,0).print('User ' + dataFromPhone)
+							.setCursor(0,1).print('unlocking.');
+						after((1).seconds(), function() {
+							my.standbyState(my);
+						});
+					} else if (dataFromPhone == 'force') {
+						my.doUnlock(my);
+					}
+
 					callback(this.RESULT_SUCCESS);
 				}, // optional write request handler, function(data, offset, withoutResponse, callback) { ...}
 				onSubscribe: null, // optional notify/indicate subscribe handler, function(maxValueSize, updateValueCallback) { ...}
@@ -207,7 +257,7 @@ function startLocker() {
 				uuid: '2A24',
 				properties: ['read'],
 				secure: [],
-				value: new Buffer('Smart Locker Mark 1'),
+				value: new Buffer('Smart Locker Mk 1'),
 				descriptors: [],
 				onReadRequest: null,
 				onWriteRequest: null,
