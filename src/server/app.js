@@ -7,12 +7,15 @@ var config = require('config'),
 	LCD = require('./util/lcd.js'),
 	lcd = new LCD('/dev/i2c-1', 0x3F),
 	os = require('os'),
-	bleno = require('bleno');
+	bleno = require('bleno'),
+	Client = require('node-rest-client').Client,
+	client = new Client();
 
 //Hardware-related settings
-const DEFAULT_TITLE = 'Smart Locker',
+const DEFAULT_TITLE = 'Smart Lock',
 	SECONDS_TO_LOCK = 10,
-	COOLOFF_SECONDS = 120;
+	COOLOFF_SECONDS = 120,
+	API_SERVER_URL = "http://192.168.43.104:3000";
 
 console.log('Configuration environment: ' + config.util.getEnv('NODE_ENV'));
 console.log('Configuration instance: ' + config.util.getEnv('NODE_APP_INSTANCE'));
@@ -161,6 +164,11 @@ function startLocker() {
 			lcd.clear().print('Unlocked.');
 			console.log('Unlocked.');
 
+			client.post(API_SERVER_URL + "/api/States/lockEnergised", {}, function (data, response) {})
+			.on('error', function (err) {
+				console.log('something went wrong on the request', err.request.options);
+			});
+
 			let seconds = SECONDS_TO_LOCK;
 			let lockingInterval = setInterval(function () {
 				if (seconds < 1) {
@@ -208,10 +216,34 @@ function startLocker() {
 					console.log('Without response: ' + withoutResponse.toString());
 
 					if (dataFromPhone == '0' || dataFromPhone == '1') {
+						if (dataFromPhone == '0') {
+							client.post(API_SERVER_URL + "/api/States/boxUser0Triggered", {}, function (data, response) {})
+							.on('error', function (err) {
+								console.log('something went wrong on the request', err.request.options);
+							});
+						} else if (dataFromPhone == '1') {
+							client.post(API_SERVER_URL + "/api/States/boxUser1Triggered", {}, function (data, response) {})
+							.on('error', function (err) {
+								console.log('something went wrong on the request', err.request.options);
+							});
+						}
+
+
 						locker.unlock(config.eth.contract, dataFromPhone)
 							.then(
 								function (response){
 									console.log('\nSigning status: ', response);
+									console.log({"transactionHash": response, "unlocker": dataFromPhone});
+									// set content-type header and data as json in args parameter
+									let args = {
+											data: {"transactionHash": response, "unlocker": dataFromPhone},
+											headers: { "Content-Type": "application/json" }
+									};
+
+									client.post(API_SERVER_URL + "/api/States/unlockingTransaction", args, function (data, response) {})
+									.on('error', function (err) {
+										console.log('something went wrong on the request', err.request.options);
+									});
 								},
 								function (err) {
 									console.log(err);
@@ -271,7 +303,7 @@ function startLocker() {
 				uuid: '2A00',
 				properties: ['read'],
 				secure: [],
-				value: new Buffer('Smart Locker'),
+				value: new Buffer('Smart Lock'),
 				descriptors: [],
 				onReadRequest: null,
 				onWriteRequest: null,
@@ -312,7 +344,7 @@ function startLocker() {
 				console.log('on -> stateChange: ' + state);
 				if (state === 'poweredOn') {
 					bleno.setServices([genericAccessService, deviceInformationService, receiveEthereumTransactionService]);
-					bleno.startAdvertising('Smart Locker', ['33d8a428b86b4e33ad426f46300959a5']);
+					bleno.startAdvertising('Smart Lock', ['33d8a428b86b4e33ad426f46300959a5']);
 				}
 				else {
 					bleno.stopAdvertising();

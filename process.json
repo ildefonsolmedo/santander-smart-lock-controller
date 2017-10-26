@@ -2,7 +2,7 @@
 	"apps": [{
 		"name": "api-smart-locker",
 		"script": "./app.js",
-		"watch": false,
+		"watch": "package.json",
 		"env": {
 			"NODE_ENV": "development"
 		},

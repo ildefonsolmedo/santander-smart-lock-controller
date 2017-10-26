@@ -56,7 +56,7 @@
     ],
 
     "eth": {
-        "contract": "0xc337440ba35301462459ec970457db2841dd39cb",
+        "contract": "0xcdcf91504ad5edbcafa433e61100a58f720ddf22",
         "sender": 0,
         "default": 0
     },

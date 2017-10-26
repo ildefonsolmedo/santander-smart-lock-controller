@@ -86,7 +86,7 @@ class LockerModel {
      * @returns {Promise} Returns a new promise with the contract detail.
      */
     unlock (contract, sender) {
-
+				console.log(sender);
         const ethHelp = this.ethHelper;
 
         return new Promise(function (resolve, reject) {

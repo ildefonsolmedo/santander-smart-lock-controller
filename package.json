@@ -1,6 +1,6 @@
 {
-  "name": "api-smart-locker",
-  "version": "0.1.0",
+  "name": "santander-smart-lock-controller",
+  "version": "1.0.0",
   "prefix": "/v1",
   "description": "API interface to Ethereum",
   "private": true,
